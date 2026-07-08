@@ -23,8 +23,6 @@ uvicorn main:app --reload --port 7779 --timeout-graceful-shutdown 5
 
 **Settings → Data Connectors → Add Custom Backend** → `http://localhost:7779`
 
-Workspace loads `widgets.json` and `apps.json` automatically. Open **Apps** and launch **Polymarket Market Explorer**.
-
 ## Environment
 
 See `.env.example` for `POLYMARKET_CACHE_DIR`, `POLYMARKET_CACHE_SIZE_LIMIT`, and `POLYMARKET_PUBLIC_BASE_URL`.
