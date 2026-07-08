@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+httpx
+diskcache
+mcp
+plotly
+python-dotenv

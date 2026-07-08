@@ -1,0 +1,19 @@
+services:
+  polymarket:
+    build: .
+    image: openbb-polymarket
+    ports:
+      - "7779:7779"
+    volumes:
+      - polymarket-cache:/data/cache
+    environment:
+      POLYMARKET_CACHE_DIR: /data/cache
+      # POLYMARKET_CACHE_SIZE_LIMIT: "1073741824"
+      # POLYMARKET_STATS_TTL_SECONDS: "600"
+      # Set when Workspace reaches the backend at a different host/port:
+      # POLYMARKET_PUBLIC_BASE_URL: "http://localhost:7779"
+    init: true
+    restart: unless-stopped
+
+volumes:
+  polymarket-cache:

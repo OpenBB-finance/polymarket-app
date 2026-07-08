@@ -1,0 +1,1172 @@
+{
+  "volume_by_tag": {
+    "name": "Volume by Tag",
+    "description": "Aggregated open-event activity grouped by Polymarket tag. Toggle the metric (24h volume, total volume, open interest) and restrict to events resolving within a window. Click a row to filter the rest of the dashboard.",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "volume_by_tag",
+    "gridData": {
+      "w": 40,
+      "h": 20
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "metric",
+        "type": "text",
+        "label": "Metric",
+        "description": "Activity metric used to rank tags: 24h volume, total volume, or open interest.",
+        "value": "volume_24h",
+        "options": [
+          {
+            "label": "24h Volume",
+            "value": "volume_24h"
+          },
+          {
+            "label": "Total Volume",
+            "value": "volume_total"
+          },
+          {
+            "label": "Open Interest",
+            "value": "open_interest"
+          }
+        ]
+      },
+      {
+        "paramName": "close_within",
+        "type": "text",
+        "label": "Ends Within",
+        "description": "Restrict to events ending within the selected window. Any time includes all open events.",
+        "value": "",
+        "options": [
+          {
+            "label": "Any time",
+            "value": ""
+          },
+          {
+            "label": "24 hours",
+            "value": "1"
+          },
+          {
+            "label": "7 days",
+            "value": "7"
+          },
+          {
+            "label": "30 days",
+            "value": "30"
+          },
+          {
+            "label": "90 days",
+            "value": "90"
+          }
+        ]
+      },
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Selecting a tag drills this table from volume-by-tag to the tag's top events by volume.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": false,
+        "enableCharts": false,
+        "columnsDefs": [
+          {
+            "field": "label",
+            "headerName": "Tag",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "pinned": "left",
+            "width": 160,
+            "renderFn": "cellOnClick",
+            "renderFnParams": {
+              "actionType": "groupBy",
+              "groupBy": {
+                "paramName": "tag",
+                "valueField": "tag"
+              }
+            }
+          },
+          {
+            "field": "event_title",
+            "headerName": "Event",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 320
+          },
+          {
+            "field": "volume_24h",
+            "headerName": "24h Volume",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 130
+          },
+          {
+            "field": "volume_total",
+            "headerName": "Total Volume",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 130
+          },
+          {
+            "field": "open_interest",
+            "headerName": "Open Interest",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 135
+          },
+          {
+            "field": "event_count",
+            "headerName": "Events",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 100
+          },
+          {
+            "field": "tag",
+            "headerName": "Slug",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "hide": true
+          }
+        ]
+      }
+    }
+  },
+  "browse_markets": {
+    "name": "Browse Markets",
+    "description": "Search and browse active Polymarket events as cards with leading outcomes and live probabilities. Search routes to Polymarket's full-text search.",
+    "category": "Polymarket",
+    "type": "iframe",
+    "endpoint": "browse_markets",
+    "gridData": {
+      "w": 40,
+      "h": 24
+    },
+    "source": "Polymarket",
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Selecting a tag filters the event browser and drills the Volume by Tag table.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "row": 1,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection. Clicking a card selects the event for the whole app.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": false,
+        "row": 1,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": false,
+        "row": 1,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        }
+      }
+    ],
+    "storage": {
+      "mcpUrl": "mcp/"
+    }
+  },
+  "event_metrics": {
+    "name": "Selected Event Metrics",
+    "description": "High-level market count, volume, liquidity, and leading outcome for the selected event.",
+    "category": "Polymarket",
+    "type": "metric",
+    "endpoint": "event_metrics",
+    "gridData": {
+      "w": 14,
+      "h": 7
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to calculate the event metrics.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": null,
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      }
+    ]
+  },
+  "event_markets": {
+    "name": "Event Markets",
+    "description": "All markets attached to the selected event. Click an outcome to load it across the market-level widgets.",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "event_outcomes",
+    "gridData": {
+      "w": 24,
+      "h": 22
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to list the event's markets.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection. Clicking an outcome row updates this market.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        }
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": false,
+        "columnsDefs": [
+          {
+            "field": "name",
+            "headerName": "Outcome",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "pinned": "left",
+            "width": 260,
+            "renderFn": "cellOnClick",
+            "renderFnParams": {
+              "actionType": "groupBy",
+              "groupBy": {
+                "paramName": "market_key",
+                "valueField": "market_key"
+              }
+            }
+          },
+          {
+            "field": "probability_pct",
+            "headerName": "YES %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "yes_bid_pct",
+            "headerName": "Bid %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "yes_ask_pct",
+            "headerName": "Ask %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "spread_pct",
+            "headerName": "Spread",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "price_change_pts",
+            "headerName": "24h Δ",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 90
+          },
+          {
+            "field": "volume_total",
+            "headerName": "Volume",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 120
+          },
+          {
+            "field": "liquidity",
+            "headerName": "Liquidity",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 120
+          },
+          {
+            "field": "close_time",
+            "headerName": "Ends",
+            "cellDataType": "dateString",
+            "chartDataType": "category",
+            "width": 170
+          },
+          {
+            "field": "condition_id",
+            "headerName": "Condition ID",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 240
+          },
+          {
+            "field": "market_key",
+            "headerName": "Market Key",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "hide": true
+          }
+        ]
+      }
+    }
+  },
+  "event_outcomes": {
+    "name": "Event Outcomes",
+    "description": "All outcomes attached to the selected event. Click an outcome to update the Event Price History selection.",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "event_outcomes",
+    "gridData": {
+      "w": 24,
+      "h": 15
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to list all event outcomes.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "history_market_key",
+        "type": "endpoint",
+        "groupById": "history_market_key-options",
+        "label": "History Outcome",
+        "description": "Outcome market or markets selected for the Event Price History chart lines.",
+        "optionsEndpoint": "/options/history_market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$history_market_key",
+          "include_all": "true",
+          "sort": "probability"
+        },
+        "multiSelect": true
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": false,
+        "columnsDefs": [
+          {
+            "field": "name",
+            "headerName": "Outcome",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "pinned": "left",
+            "width": 260,
+            "renderFn": "cellOnClick",
+            "renderFnParams": {
+              "actionType": "groupBy",
+              "groupBy": {
+                "paramName": "history_market_key",
+                "valueField": "market_key"
+              }
+            }
+          },
+          {
+            "field": "probability_pct",
+            "headerName": "YES %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "yes_bid_pct",
+            "headerName": "Bid %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "yes_ask_pct",
+            "headerName": "Ask %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "spread_pct",
+            "headerName": "Spread",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 100
+          },
+          {
+            "field": "volume_total",
+            "headerName": "Volume",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 120
+          },
+          {
+            "field": "liquidity",
+            "headerName": "Liquidity",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 120
+          },
+          {
+            "field": "market_key",
+            "headerName": "Market Key",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "hide": true
+          }
+        ]
+      }
+    }
+  },
+  "event_history_chart": {
+    "name": "Event Price History",
+    "description": "Line chart of YES probabilities for all event outcomes or selected outcomes, sourced from the CLOB price history.",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "event_history_chart",
+    "gridData": {
+      "w": 40,
+      "h": 15
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "storage": {
+      "ignoreCellRange": true,
+      "chartView": {
+        "enabled": true,
+        "chartType": "line"
+      }
+    },
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to load price history across the event outcomes.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "history_market_key",
+        "type": "endpoint",
+        "groupById": "history_market_key-options",
+        "label": "Outcome",
+        "description": "Outcome market or markets to plot in the event price history chart.",
+        "optionsEndpoint": "/options/history_market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$history_market_key",
+          "include_all": "true",
+          "sort": "probability"
+        },
+        "multiSelect": true
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": true,
+        "chartView": {
+          "enabled": true,
+          "chartType": "line",
+          "ignoreCellRange": true
+        },
+        "columnsDefs": [
+          {
+            "field": "time",
+            "headerName": "Time",
+            "cellDataType": "dateString",
+            "chartDataType": "time",
+            "pinned": "left",
+            "width": 170,
+            "sort": "asc",
+            "sortIndex": 0
+          }
+        ]
+      }
+    }
+  },
+  "market_brief": {
+    "name": "Market Rules & Details",
+    "description": "Resolution criteria and metadata for the selected market: UMA resolution source, probability, bid/ask, spread, volume, and liquidity.",
+    "category": "Polymarket",
+    "type": "iframe",
+    "endpoint": "market_brief",
+    "gridData": {
+      "w": 13,
+      "h": 20
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to scope market rules and details.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        },
+        "row": 1
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection used for resolution criteria and metadata.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        },
+        "row": 1
+      }
+    ],
+    "storage": {
+      "mcpUrl": "mcp/"
+    }
+  },
+  "orderbook_ladder": {
+    "name": "Orderbook Ladder",
+    "description": "CLOB ladder combining best bid/ask, two-sided depth bars, and level table in one HTML widget. Toggle the YES or NO token's book. Raw view returns the underlying orderbook rows.",
+    "category": "Polymarket",
+    "type": "html",
+    "endpoint": "orderbook_ladder",
+    "raw": true,
+    "gridData": {
+      "w": 20,
+      "h": 29
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to scope the orderbook market options.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection used to load the orderbook ladder.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        }
+      },
+      {
+        "paramName": "side",
+        "type": "tabs",
+        "label": "Side",
+        "description": "Choose whether the ladder is shown from the YES or NO token's book.",
+        "value": "yes",
+        "options": [
+          {
+            "label": "YES book",
+            "value": "yes"
+          },
+          {
+            "label": "NO book",
+            "value": "no"
+          }
+        ]
+      }
+    ]
+  },
+  "selected_trades": {
+    "name": "Trade Tape",
+    "description": "Recent public trades for the selected market.",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "selected_trades",
+    "gridData": {
+      "w": 24,
+      "h": 15
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to scope trade tape market options.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection used to load recent public trades.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        }
+      },
+      {
+        "paramName": "limit",
+        "type": "number",
+        "label": "Limit",
+        "description": "Maximum number of recent trades to return for the selected market.",
+        "value": 100
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": true,
+        "columnsDefs": [
+          {
+            "field": "timestamp",
+            "headerName": "Time",
+            "cellDataType": "dateString",
+            "chartDataType": "time",
+            "width": 170
+          },
+          {
+            "field": "side",
+            "headerName": "Side",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 90
+          },
+          {
+            "field": "outcome",
+            "headerName": "Outcome",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 110
+          },
+          {
+            "field": "size",
+            "headerName": "Shares",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 120
+          },
+          {
+            "field": "price",
+            "headerName": "Price",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 110
+          },
+          {
+            "field": "price_pct",
+            "headerName": "Price %",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 110
+          },
+          {
+            "field": "notional",
+            "headerName": "Notional",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "none",
+            "width": 120
+          },
+          {
+            "field": "trader",
+            "headerName": "Trader",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 150
+          },
+          {
+            "field": "wallet",
+            "headerName": "Wallet",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "hide": true
+          },
+          {
+            "field": "tx_hash",
+            "headerName": "Tx",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "hide": true
+          }
+        ]
+      }
+    }
+  },
+  "top_holders": {
+    "name": "Top Holders",
+    "description": "Largest YES/NO position holders for the selected market (Polymarket Data API).",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "top_holders",
+    "gridData": {
+      "w": 20,
+      "h": 15
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "tag",
+        "type": "endpoint",
+        "groupById": "tag-options",
+        "label": "Tag",
+        "description": "Shared Polymarket tag filter. Narrows the Event dropdown to the selected tag.",
+        "optionsEndpoint": "/options/tag-options",
+        "value": "All",
+        "show": true,
+        "optionsParams": {
+          "field": "tag"
+        }
+      },
+      {
+        "paramName": "event_id",
+        "type": "endpoint",
+        "groupById": "event_id-options",
+        "label": "Event",
+        "description": "Shared Polymarket event selection used to scope holder market options.",
+        "optionsEndpoint": "/options/event_id-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "event_id",
+          "tag": "$tag"
+        },
+        "style": {
+          "popupWidth": 850
+        }
+      },
+      {
+        "paramName": "market_key",
+        "type": "endpoint",
+        "groupById": "market_key-options",
+        "label": "Market",
+        "description": "Shared Polymarket market selection used to load top holders.",
+        "optionsEndpoint": "/options/market_key-options",
+        "value": "",
+        "show": true,
+        "optionsParams": {
+          "field": "market_key",
+          "event_id": "$event_id",
+          "market_key": "$market_key"
+        }
+      },
+      {
+        "paramName": "limit",
+        "type": "number",
+        "label": "Limit",
+        "description": "Maximum number of holders per outcome token to return.",
+        "value": 20
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": false,
+        "columnsDefs": [
+          {
+            "field": "rank",
+            "headerName": "#",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 70
+          },
+          {
+            "field": "outcome",
+            "headerName": "Outcome",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 120
+          },
+          {
+            "field": "trader",
+            "headerName": "Trader",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 180
+          },
+          {
+            "field": "shares",
+            "headerName": "Shares",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 140
+          },
+          {
+            "field": "wallet",
+            "headerName": "Wallet",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 320
+          }
+        ]
+      }
+    }
+  },
+  "leaderboard": {
+    "name": "Trader Leaderboard",
+    "description": "Top Polymarket traders ranked by volume or profit over a time window (Polymarket leaderboard API).",
+    "category": "Polymarket",
+    "type": "table",
+    "endpoint": "leaderboard",
+    "gridData": {
+      "w": 20,
+      "h": 18
+    },
+    "source": [
+      "Polymarket"
+    ],
+    "params": [
+      {
+        "paramName": "rank_by",
+        "type": "tabs",
+        "label": "Rank By",
+        "description": "Rank traders by trading volume or realized profit.",
+        "value": "volume",
+        "options": [
+          {
+            "label": "Volume",
+            "value": "volume"
+          },
+          {
+            "label": "Profit",
+            "value": "pnl"
+          }
+        ]
+      },
+      {
+        "paramName": "window",
+        "type": "text",
+        "label": "Window",
+        "description": "Time window for the leaderboard ranking.",
+        "value": "7d",
+        "options": [
+          {
+            "label": "24 hours",
+            "value": "1d"
+          },
+          {
+            "label": "7 days",
+            "value": "7d"
+          },
+          {
+            "label": "30 days",
+            "value": "30d"
+          },
+          {
+            "label": "All time",
+            "value": "all"
+          }
+        ]
+      },
+      {
+        "paramName": "limit",
+        "type": "number",
+        "label": "Limit",
+        "description": "Maximum number of ranked traders to return.",
+        "value": 50
+      }
+    ],
+    "data": {
+      "table": {
+        "showAll": true,
+        "enableCharts": true,
+        "columnsDefs": [
+          {
+            "field": "rank",
+            "headerName": "#",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 70
+          },
+          {
+            "field": "trader",
+            "headerName": "Trader",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 200
+          },
+          {
+            "field": "amount",
+            "headerName": "Amount (USD)",
+            "cellDataType": "number",
+            "chartDataType": "series",
+            "formatterFn": "int",
+            "width": 160
+          },
+          {
+            "field": "wallet",
+            "headerName": "Wallet",
+            "cellDataType": "text",
+            "chartDataType": "category",
+            "width": 320
+          }
+        ]
+      }
+    }
+  }
+}

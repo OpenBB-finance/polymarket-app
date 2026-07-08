@@ -1,0 +1,236 @@
+[
+  {
+    "name": "Polymarket Market Explorer",
+    "img": "static/thumbnail.svg",
+    "img_dark": "static/thumbnail.svg",
+    "img_light": "static/thumbnail.svg",
+    "description": "Search and browse active Polymarket events, then drill from tag to event to market for probability, orderbook, trades, holders, and price history.",
+    "allowCustomization": true,
+    "tabs": {
+      "discover": {
+        "id": "discover",
+        "name": "Discover",
+        "layout": [
+          {
+            "i": "volume_by_tag",
+            "x": 0,
+            "y": 2,
+            "w": 28,
+            "h": 16,
+            "groups": [
+              "Group 1"
+            ]
+          },
+          {
+            "i": "leaderboard",
+            "x": 28,
+            "y": 2,
+            "w": 12,
+            "h": 16
+          },
+          {
+            "i": "browse_markets",
+            "x": 0,
+            "y": 18,
+            "w": 40,
+            "h": 28,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ],
+            "state": {
+              "params": {
+                "search": "",
+                "tag": "All",
+                "sort": "trending"
+              }
+            }
+          }
+        ]
+      },
+      "event": {
+        "id": "event",
+        "name": "Event",
+        "layout": [
+          {
+            "i": "event_metrics",
+            "x": 0,
+            "y": 2,
+            "w": 40,
+            "h": 4,
+            "groups": [
+              "Group 1",
+              "Group 2"
+            ]
+          },
+          {
+            "i": "event_outcomes",
+            "x": 0,
+            "y": 6,
+            "w": 40,
+            "h": 15,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 4"
+            ]
+          },
+          {
+            "i": "event_history_chart",
+            "x": 0,
+            "y": 21,
+            "w": 40,
+            "h": 15,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 4"
+            ]
+          }
+        ]
+      },
+      "market": {
+        "id": "market",
+        "name": "Markets",
+        "layout": [
+          {
+            "i": "event_markets",
+            "x": 0,
+            "y": 2,
+            "w": 40,
+            "h": 10,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ]
+          },
+          {
+            "i": "market_brief",
+            "x": 0,
+            "y": 12,
+            "w": 13,
+            "h": 20,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ]
+          },
+          {
+            "i": "orderbook_ladder",
+            "x": 13,
+            "y": 12,
+            "w": 14,
+            "h": 20,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ]
+          },
+          {
+            "i": "top_holders",
+            "x": 27,
+            "y": 12,
+            "w": 13,
+            "h": 20,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ]
+          },
+          {
+            "i": "selected_trades",
+            "x": 0,
+            "y": 32,
+            "w": 40,
+            "h": 12,
+            "groups": [
+              "Group 1",
+              "Group 2",
+              "Group 3"
+            ]
+          }
+        ]
+      }
+    },
+    "groups": [
+      {
+        "name": "Group 1",
+        "type": "endpointParam",
+        "paramName": "tag",
+        "defaultValue": "All",
+        "widgetIds": [
+          "volume_by_tag",
+          "browse_markets",
+          "event_metrics",
+          "event_markets",
+          "event_outcomes",
+          "event_history_chart",
+          "market_brief",
+          "orderbook_ladder",
+          "selected_trades",
+          "top_holders"
+        ]
+      },
+      {
+        "name": "Group 2",
+        "type": "endpointParam",
+        "paramName": "event_id",
+        "defaultValue": "",
+        "widgetIds": [
+          "browse_markets",
+          "event_metrics",
+          "event_outcomes",
+          "event_history_chart",
+          "event_markets",
+          "market_brief",
+          "orderbook_ladder",
+          "selected_trades",
+          "top_holders"
+        ]
+      },
+      {
+        "name": "Group 3",
+        "type": "endpointParam",
+        "paramName": "market_key",
+        "defaultValue": "",
+        "widgetIds": [
+          "browse_markets",
+          "event_markets",
+          "market_brief",
+          "orderbook_ladder",
+          "selected_trades",
+          "top_holders"
+        ]
+      },
+      {
+        "name": "Group 4",
+        "type": "endpointParam",
+        "paramName": "history_market_key",
+        "defaultValue": "",
+        "widgetIds": [
+          "event_outcomes",
+          "event_history_chart"
+        ]
+      }
+    ],
+    "prompts": [
+      "Which tags have the most 24h volume and open interest right now?",
+      "Show the most active events ending within 7 days and which look most liquid.",
+      "Summarize the selected event, including its markets, prices, spreads, volume, and liquidity.",
+      "Explain the selected market's YES probability, bid-ask spread, orderbook depth, and recent trades.",
+      "Who are the top holders of the selected market, and what does the recent trade tape show?"
+    ],
+    "mcp_servers": [
+      {
+        "name": "Polymarket Markets",
+        "description": "Polymarket market-data tools: browse events by tag, list active tags, set the selected market, and pull quotes, order books, recent trades, and top holders.",
+        "url": "mcp/"
+      }
+    ]
+  }
+]
