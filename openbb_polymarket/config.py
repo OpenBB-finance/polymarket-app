@@ -33,7 +33,6 @@ class Settings:
     leaderboard_base_url: str = "https://lb-api.polymarket.com"
 
     user_agent: str = "OpenBB-Polymarket-Market-Dashboard/1.0"
-    public_base_url: str = ""
     http_timeout: float = 20.0
     rate_limit_per_sec: float = 8.0
 
@@ -63,10 +62,7 @@ class Settings:
             gamma_base_url=os.getenv("POLYMARKET_GAMMA_BASE_URL", cls.gamma_base_url).rstrip("/"),
             data_base_url=os.getenv("POLYMARKET_DATA_BASE_URL", cls.data_base_url).rstrip("/"),
             clob_base_url=os.getenv("POLYMARKET_CLOB_BASE_URL", cls.clob_base_url).rstrip("/"),
-            leaderboard_base_url=os.getenv(
-                "POLYMARKET_LEADERBOARD_BASE_URL", cls.leaderboard_base_url
-            ).rstrip("/"),
-            public_base_url=os.getenv("POLYMARKET_PUBLIC_BASE_URL", cls.public_base_url).rstrip("/"),
+            leaderboard_base_url=os.getenv("POLYMARKET_LEADERBOARD_BASE_URL", cls.leaderboard_base_url).rstrip("/"),
             http_timeout=float(os.getenv("POLYMARKET_HTTP_TIMEOUT", cls.http_timeout)),
             rate_limit_per_sec=float(os.getenv("POLYMARKET_RATE_LIMIT_PER_SEC", cls.rate_limit_per_sec)),
             cache_dir=os.getenv("POLYMARKET_CACHE_DIR", cls.cache_dir),

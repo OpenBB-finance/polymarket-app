@@ -17,8 +17,3 @@ def get_stats(request: Request) -> EventStatsCache:
 
 def get_service(request: Request) -> MarketDataService:
     return request.app.state.service
-
-
-def resolve_base_url(request: Request) -> str:
-    settings = request.app.state.settings
-    return (settings.public_base_url or str(request.base_url)).rstrip("/")

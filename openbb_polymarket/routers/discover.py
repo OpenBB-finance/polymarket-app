@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 
 from openbb_polymarket import charts
 from openbb_polymarket.browse import render_browse
-from openbb_polymarket.dependencies import get_service, get_stats, resolve_base_url
+from openbb_polymarket.dependencies import get_service, get_stats
 from openbb_polymarket.event_page import render_event_page
 from openbb_polymarket.formatting import ALL, clamp_limit, norm_tag
 from openbb_polymarket.service import MarketDataService
@@ -69,39 +69,61 @@ async def _browse_param_defs(
     limit: int = 40,
 ) -> list[dict[str, Any]]:
     tag_options = [{"label": "All tags", "value": "All"}]
-    tag_options += [
-        {"label": f"{t['label']} ({t['event_count']})", "value": t["slug"]}
-        for t in await stats.tags()
-    ]
+    tag_options += [{"label": f"{t['label']} ({t['event_count']})", "value": t["slug"]} for t in await stats.tags()]
     sort_options = [
-        {"label": "Trending", "value": "trending"}, {"label": "Volume", "value": "volume"},
-        {"label": "Liquidity", "value": "liquidity"}, {"label": "Open Interest", "value": "open_interest"},
-        {"label": "Volatile", "value": "volatile"}, {"label": "New", "value": "new"},
-        {"label": "Ending soon", "value": "ending_soon"}, {"label": "50-50", "value": "fifty_fifty"},
+        {"label": "Trending", "value": "trending"},
+        {"label": "Volume", "value": "volume"},
+        {"label": "Liquidity", "value": "liquidity"},
+        {"label": "Open Interest", "value": "open_interest"},
+        {"label": "Volatile", "value": "volatile"},
+        {"label": "New", "value": "new"},
+        {"label": "Ending soon", "value": "ending_soon"},
+        {"label": "50-50", "value": "fifty_fifty"},
     ]
     close_options = [
-        {"label": "Any time", "value": ""}, {"label": "24 hours", "value": "1"},
-        {"label": "7 days", "value": "7"}, {"label": "30 days", "value": "30"},
+        {"label": "Any time", "value": ""},
+        {"label": "24 hours", "value": "1"},
+        {"label": "7 days", "value": "7"},
+        {"label": "30 days", "value": "30"},
         {"label": "90 days", "value": "90"},
     ]
     return [
         {"paramName": "search", "label": "Search", "type": "text", "value": search or ""},
-        {"paramName": "tag", "label": "Tag", "type": "text",
-         "value": _coerce(tag, tag_options, "All"), "options": tag_options},
-        {"paramName": "sort", "label": "Sort", "type": "text",
-         "value": _coerce(sort, sort_options, "trending"), "options": sort_options},
-        {"paramName": "close_within", "label": "Ends Within", "type": "text",
-         "value": _coerce(close_within, close_options, ""), "options": close_options},
-        {"paramName": "reverse", "label": "Reverse sort", "type": "boolean",
-         "value": "true" if reverse else "false"},
-        {"paramName": "limit", "label": "Max events", "type": "number", "value": str(limit),
-         "min": 1, "max": 150, "step": 10},
+        {
+            "paramName": "tag",
+            "label": "Tag",
+            "type": "text",
+            "value": _coerce(tag, tag_options, "All"),
+            "options": tag_options,
+        },
+        {
+            "paramName": "sort",
+            "label": "Sort",
+            "type": "text",
+            "value": _coerce(sort, sort_options, "trending"),
+            "options": sort_options,
+        },
+        {
+            "paramName": "close_within",
+            "label": "Ends Within",
+            "type": "text",
+            "value": _coerce(close_within, close_options, ""),
+            "options": close_options,
+        },
+        {"paramName": "reverse", "label": "Reverse sort", "type": "boolean", "value": "true" if reverse else "false"},
+        {
+            "paramName": "limit",
+            "label": "Max events",
+            "type": "number",
+            "value": str(limit),
+            "min": 1,
+            "max": 150,
+            "step": 10,
+        },
     ]
 
 
-async def _volume_by_event(
-    stats: EventStatsCache, slug: str, metric: str, close_within: str
-) -> list[dict[str, Any]]:
+async def _volume_by_event(stats: EventStatsCache, slug: str, metric: str, close_within: str) -> list[dict[str, Any]]:
     events = await stats.events(tag=slug, close_within_days=_days(close_within))
     events = sorted(events, key=lambda e: e.get(metric) or 0, reverse=True)[:60]
     tag_label = next((t["label"] for t in await stats.tags() if t["slug"] == slug), slug)
@@ -155,9 +177,7 @@ async def _browse_cards(
             descending = not descending
         cards = EventStatsCache._sorted(cards, field, descending)[:limit]
         for card in cards:
-            card["outcomes"] = sorted(
-                card["outcomes"], key=lambda o: o["volume_total"], reverse=True
-            )[:4]
+            card["outcomes"] = sorted(card["outcomes"], key=lambda o: o["volume_total"], reverse=True)[:4]
         total = int((found.get("pagination") or {}).get("totalResults") or len(cards))
         return cards, total
     cards = await stats.browse_events(
@@ -185,8 +205,12 @@ async def browse_markets(
 ) -> Any:
     sort = sort if sort in _VALID_SORTS else "trending"
     filters = {
-        "tag": tag, "search": search, "sort": sort,
-        "close_within": close_within, "reverse": "true" if reverse else "", "theme": theme,
+        "tag": tag,
+        "search": search,
+        "sort": sort,
+        "close_within": close_within,
+        "reverse": "true" if reverse else "",
+        "theme": theme,
     }
     back_qs = urlencode({k: v for k, v in filters.items() if v and v != ALL})
 
@@ -195,27 +219,44 @@ async def browse_markets(
     # never bounces back to the list.
     if not raw and (event_id or "").strip():
         return await _render_event_detail(
-            request, service, event_id=event_id, market_key=market_key,
-            theme=theme, back_qs=back_qs,
+            request,
+            service,
+            event_id=event_id,
+            market_key=market_key,
+            theme=theme,
+            back_qs=back_qs,
         )
 
     cards, total = await _browse_cards(
-        stats, service,
-        tag=tag, search=search, close_within=close_within,
-        sort=sort, reverse=reverse, limit=clamp_limit(limit, maximum=150),
+        stats,
+        service,
+        tag=tag,
+        search=search,
+        close_within=close_within,
+        sort=sort,
+        reverse=reverse,
+        limit=clamp_limit(limit, maximum=150),
     )
     rows = [_event_row(card) for card in cards]
     if raw:
         return rows
 
-    base_url = resolve_base_url(request)
     html = render_browse(
-        cards, rows=rows,
+        cards,
+        rows=rows,
         param_defs=await _browse_param_defs(
-            stats, tag=tag, search=search, sort=sort,
-            close_within=close_within, reverse=reverse, limit=limit,
+            stats,
+            tag=tag,
+            search=search,
+            sort=sort,
+            close_within=close_within,
+            reverse=reverse,
+            limit=limit,
         ),
-        total=total, search=search, theme=theme, base_url=base_url, back_qs=back_qs,
+        total=total,
+        search=search,
+        theme=theme,
+        back_qs=back_qs,
     )
     return HTMLResponse(content=html)
 
@@ -234,15 +275,13 @@ async def _render_event_detail(
     identifier = (event_id or "").strip() or parse_market_key(market_key)["event_id"]
     resolved = await service.resolve_event(event_id=identifier or None)
     figure = await _event_figure(service, resolved, theme)
-    base_url = resolve_base_url(request)
-    back_url = f"{base_url}/browse_markets?{back_qs}" if back_qs else f"{base_url}/browse_markets?theme={quote(theme)}"
+    back_url = f"/browse_markets?{back_qs}" if back_qs else f"/browse_markets?theme={quote(theme)}"
     poll_url = f"/event_chart?event_id={quote(resolved['event_id'])}&theme={quote(theme)}"
     html = render_event_page(
         event=resolved["event"],
         markets=resolved["markets"],
         event_id=resolved["event_id"],
         theme=theme,
-        base_url=base_url,
         back_url=back_url,
         history_figure=figure,
         poll_url=poll_url,
@@ -251,16 +290,12 @@ async def _render_event_detail(
     return HTMLResponse(content=html)
 
 
-async def _event_figure(
-    service: MarketDataService, resolved: dict[str, Any], theme: str
-) -> dict[str, Any] | None:
+async def _event_figure(service: MarketDataService, resolved: dict[str, Any], theme: str) -> dict[str, Any] | None:
     from openbb_polymarket.stats import _outcome
 
     outcomes = [_outcome(m, resolved["event_id"]) for m in resolved["markets"]]
     histories = await service.outcome_histories(outcomes)
-    lines = [
-        {"name": h["name"], "points": h["points"]} for h in histories if h["points"]
-    ]
+    lines = [{"name": h["name"], "points": h["points"]} for h in histories if h["points"]]
     return charts.outcome_history(lines, theme) if lines else None
 
 
@@ -278,15 +313,13 @@ async def event_details(
     identifier = (event_id or "").strip() or parse_market_key(market_key)["event_id"]
     resolved = await service.resolve_event(event_id=identifier or None)
     figure = await _event_figure(service, resolved, theme)
-    base_url = resolve_base_url(request)
-    back_url = f"{base_url}/browse_markets?{back}" if back else f"{base_url}/browse_markets?theme={theme}"
+    back_url = f"/browse_markets?{back}" if back else f"/browse_markets?theme={theme}"
     poll_url = f"/event_chart?event_id={quote(resolved['event_id'])}&theme={quote(theme)}"
     html = render_event_page(
         event=resolved["event"],
         markets=resolved["markets"],
         event_id=resolved["event_id"],
         theme=theme,
-        base_url=base_url,
         back_url=back_url,
         history_figure=figure,
         poll_url=poll_url,

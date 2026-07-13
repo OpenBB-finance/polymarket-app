@@ -13,6 +13,8 @@ def main() -> None:
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "7779")),
         timeout_graceful_shutdown=int(os.getenv("TIMEOUT_GRACEFUL_SHUTDOWN", "5")),
+        proxy_headers=True,
+        forwarded_allow_ips=os.getenv("FORWARDED_ALLOW_IPS", "*"),
     )
 
 

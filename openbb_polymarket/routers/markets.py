@@ -6,7 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, StreamingResponse
 
-from openbb_polymarket.dependencies import get_service, get_stats, resolve_base_url
+from openbb_polymarket.dependencies import get_service, get_stats
 from openbb_polymarket.formatting import parse_json_list, parse_market_key, to_float
 from openbb_polymarket.ladder import render_ladder
 from openbb_polymarket.marketrules import render_market_rules
@@ -64,7 +64,7 @@ def _prompt_html(theme: str) -> str:
     bg = "#ffffff" if theme == "light" else "#0f0f12"
     return (
         f'<html><body style="margin:0;height:100vh;display:flex;align-items:center;'
-        f'justify-content:center;background:{bg};color:{color};'
+        f"justify-content:center;background:{bg};color:{color};"
         f'font-family:-apple-system,Segoe UI,sans-serif;font-size:13px;text-align:center;padding:24px">'
         f"<div><strong>{_NO_MARKET}</strong><br/>{_NO_MARKET_HINT}</div></body></html>"
     )
@@ -80,16 +80,14 @@ async def market_brief(
     if not _has(market_key):
         return HTMLResponse(content=_prompt_html(theme))
     selected = await service.resolve_market(market_key)
-    base_url = resolve_base_url(request)
     html = render_market_rules(
         market=selected["market"],
         event=selected["event"],
         condition_id=selected["condition_id"],
         event_id=selected["event_id"],
         theme=theme,
-        base_url=base_url,
         param_defs=[],
-        sync_url=f"{base_url}/selection_stream",
+        sync_url="/selection_stream",
         current_market=selected["market_key"],
     )
     return HTMLResponse(content=html)
@@ -106,9 +104,7 @@ async def selection_stream() -> StreamingResponse:
             yield f"data: {current_selection()}\n\n"
             while not stream_shutdown_started():
                 try:
-                    market_key = await asyncio.wait_for(
-                        queue.get(), timeout=_STREAM_HEARTBEAT_SECONDS
-                    )
+                    market_key = await asyncio.wait_for(queue.get(), timeout=_STREAM_HEARTBEAT_SECONDS)
                 except asyncio.TimeoutError:
                     yield ": keep-alive\n\n"
                     continue
@@ -168,7 +164,6 @@ async def orderbook_ladder(
         last_price=last_pct,
         side=side,
         theme=theme,
-        base_url=resolve_base_url(request),
     )
     return HTMLResponse(content=html)
 

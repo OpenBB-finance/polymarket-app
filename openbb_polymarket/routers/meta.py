@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from openbb_polymarket.config import ROOT_PATH
-from openbb_polymarket.dependencies import get_service, get_stats, resolve_base_url
+from openbb_polymarket.dependencies import get_service, get_stats
 from openbb_polymarket.formatting import build_market_key, parse_json_list, pct
 from openbb_polymarket.service import MarketDataService, TOP_HISTORY_OUTCOME_COUNT
 from openbb_polymarket.stats import EventStatsCache
@@ -30,49 +30,6 @@ async def root(request: Request) -> dict[str, str]:
         "app": "Polymarket Market Dashboard",
         "gamma_api": request.app.state.settings.gamma_base_url,
     }
-
-
-def _resolve_widget_endpoints(manifest: dict[str, Any], base_url: str) -> dict[str, Any]:
-    resolved = deepcopy(manifest)
-    base = base_url.rstrip("/")
-    for widget in resolved.values():
-        if not isinstance(widget, dict):
-            continue
-        endpoint = str(widget.get("endpoint", "")).strip()
-        if endpoint and not endpoint.startswith(("http://", "https://")):
-            widget["endpoint"] = f"{base}/{endpoint.lstrip('/')}"
-        for param in widget.get("params", []):
-            if not isinstance(param, dict):
-                continue
-            options_endpoint = str(param.get("optionsEndpoint", "")).strip()
-            if options_endpoint and not options_endpoint.startswith(("http://", "https://")):
-                param["optionsEndpoint"] = f"{base}/{options_endpoint.lstrip('/')}"
-        storage = widget.get("storage")
-        if isinstance(storage, dict):
-            mcp_url = str(storage.get("mcpUrl", "")).strip()
-            if mcp_url and not mcp_url.startswith(("http://", "https://")):
-                storage["mcpUrl"] = f"{base}/{mcp_url.lstrip('/')}"
-    return resolved
-
-
-def _resolve_app_assets(manifest: Any, base_url: str) -> Any:
-    resolved = deepcopy(manifest)
-    base = base_url.rstrip("/")
-    apps = resolved if isinstance(resolved, list) else [resolved]
-    for app in apps:
-        if not isinstance(app, dict):
-            continue
-        for key in ("img", "img_dark", "img_light"):
-            value = str(app.get(key, "")).strip()
-            if value and not value.startswith(("http://", "https://")):
-                app[key] = f"{base}/{value.lstrip('/')}"
-        for server in app.get("mcp_servers", []):
-            if not isinstance(server, dict):
-                continue
-            url = str(server.get("url", "")).strip()
-            if url and not url.startswith(("http://", "https://")):
-                server["url"] = f"{base}/{url.lstrip('/')}"
-    return resolved
 
 
 def _is_empty_default(value: Any) -> bool:
@@ -139,22 +96,20 @@ def _apply_group_defaults(manifest: Any, defaults: dict[str, Any]) -> Any:
 
 @router.get("/widgets.json")
 async def widgets(
-    request: Request,
     stats: EventStatsCache = Depends(get_stats),
     service: MarketDataService = Depends(get_service),
 ) -> JSONResponse:
-    manifest = _resolve_widget_endpoints(_load_manifest("widgets.json"), resolve_base_url(request))
+    manifest = deepcopy(_load_manifest("widgets.json"))
     _apply_value_defaults(manifest, await _selection_defaults(stats, service))
     return JSONResponse(content=manifest)
 
 
 @router.get("/apps.json")
 async def apps(
-    request: Request,
     stats: EventStatsCache = Depends(get_stats),
     service: MarketDataService = Depends(get_service),
 ) -> JSONResponse:
-    manifest = _resolve_app_assets(_load_manifest("apps.json"), resolve_base_url(request))
+    manifest = deepcopy(_load_manifest("apps.json"))
     _apply_group_defaults(manifest, await _selection_defaults(stats, service))
     return JSONResponse(content=manifest)
 
