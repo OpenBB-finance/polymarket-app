@@ -63,10 +63,10 @@ def _prompt_html(theme: str) -> str:
     color = "#667085" if theme == "light" else "#9a9aa4"
     bg = "#ffffff" if theme == "light" else "#0f0f12"
     return (
-        f'<html><body style="margin:0;height:100vh;display:flex;align-items:center;'
+        f'<div style="margin:0;height:100%;min-height:200px;display:flex;align-items:center;'
         f"justify-content:center;background:{bg};color:{color};"
         f'font-family:-apple-system,Segoe UI,sans-serif;font-size:13px;text-align:center;padding:24px">'
-        f"<div><strong>{_NO_MARKET}</strong><br/>{_NO_MARKET_HINT}</div></body></html>"
+        f"<div><strong>{_NO_MARKET}</strong><br/>{_NO_MARKET_HINT}</div></div>"
     )
 
 

@@ -1,6 +1,15 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from html import escape
+from pathlib import Path
+
+_CSS_PATH = Path(__file__).resolve().parent / "static" / "css" / "ladder.css"
+
+
+@lru_cache(maxsize=1)
+def _css() -> str:
+    return _CSS_PATH.read_text(encoding="utf-8")
 
 
 def _price(value: float) -> str:
@@ -45,7 +54,6 @@ def render_ladder(
     last_price: float | None,
     side: str,
     theme: str,
-    base_url: str = "",
 ) -> str:
     asks_c = _cumulative(asks)
     bids_c = _cumulative(bids)
@@ -64,17 +72,10 @@ def render_ladder(
     is_no = side == "no"
     side_label = "Trade No" if is_no else "Trade Yes"
     last_label = f"Last {_price(last_price)}" if last_price else ""
-    assets = base_url.rstrip("/")
 
     return f"""
-<!doctype html>
-<html data-theme="{'light' if theme == 'light' else 'dark'}">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="{assets}/static/css/ladder.css" />
-</head>
-<body data-side="{'no' if is_no else 'yes'}">
+<style>{_css()}</style>
+<div class="pm-ladder" data-theme="{'light' if theme == 'light' else 'dark'}" data-side="{'no' if is_no else 'yes'}">
   <main class="shell">
     <div class="head">
       <div>
@@ -90,6 +91,5 @@ def render_ladder(
       {bid_html}
     </div>
   </main>
-</body>
-</html>
+</div>
 """.strip()
