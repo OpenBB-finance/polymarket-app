@@ -18,14 +18,21 @@ body {
 .wrap { height: 100vh; display: flex; flex-direction: column; }
 .toolbar { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
   gap: 12px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
-.caption { font-size: 11px; color: var(--muted); }
+.caption { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.pager { display: flex; gap: 6px; margin-right: auto; }
+.pager button { background: var(--card); color: var(--text); border: 1px solid var(--line);
+  border-radius: 7px; padding: 5px 10px; font-size: 12px; cursor: pointer; }
+.pager button:hover:not(:disabled) { background: var(--card-h); border-color: var(--muted); }
+.pager button:disabled { color: var(--muted); opacity: .45; cursor: default; }
 .views { display: flex; gap: 6px; }
 .views button { background: var(--card); color: var(--muted); border: 1px solid var(--line);
   border-radius: 7px; padding: 5px 12px; font-size: 12px; cursor: pointer; }
 .views button.active { color: var(--text); border-color: var(--muted); background: var(--card-h); }
 .content { flex: 1 1 auto; min-height: 0; position: relative; }
-#ob-cards { position: absolute; inset: 0; overflow: auto; padding: 12px; display: grid;
-  align-content: start; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); }
+/* min() keeps a card from ever exceeding the widget width, so the pills/payouts
+   on the right of each row can't spill outside the card in a narrow widget. */
+#ob-cards { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 12px; display: grid;
+  align-content: start; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(440px, 100%), 1fr)); }
 #ob-grid { position: absolute; inset: 0; }
 .ob-hidden { display: none !important; }
 a.event {
@@ -37,6 +44,11 @@ a.event:hover { background: var(--card-h); border-color: var(--muted); }
 .event header { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ev-img { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 9px; background-color: var(--track);
   background-size: cover; background-position: center; background-repeat: no-repeat; }
+/* Polymarket icons are transparent PNGs drawn for light backgrounds: back the
+   image tiles with white so the artwork stays legible in the dark theme, and
+   ring them so they still read as tiles on the light theme. Tiles without an
+   image keep the themed placeholder so they don't turn into white blobs. */
+.ev-img.has-img, .oc-img.has-img { background-color: #ffffff; box-shadow: inset 0 0 0 1px var(--line); }
 .ev-head { min-width: 0; }
 .title { font-size: 15px; font-weight: 650; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .open { color: var(--muted); font-size: 11px; }

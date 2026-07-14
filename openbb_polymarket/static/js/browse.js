@@ -113,9 +113,9 @@
   function intFmt(p) { return p.value == null ? "" : Number(p.value).toLocaleString(); }
   function pctFmt(p) { return p.value == null ? "" : Number(p.value).toFixed(0) + "%"; }
   function eventUrl(id, mk) {
-    var u = CFG.base + "/browse_markets?event_id=" + encodeURIComponent(id);
+    var u = CFG.base + "/event_details?event_id=" + encodeURIComponent(id) + "&theme=" + encodeURIComponent(CFG.theme || "dark");
     if (mk) u += "&market_key=" + encodeURIComponent(mk);
-    if (CFG.back) u += "&" + CFG.back;
+    if (CFG.back) u += "&back=" + encodeURIComponent(CFG.back);
     return u;
   }
   function selectAndOpen(id, mk) {
@@ -162,6 +162,16 @@
   document.getElementById("ob-view-cards").addEventListener("click", function () { setView("cards"); });
   document.getElementById("ob-view-table").addEventListener("click", function () { setView("table"); });
   document.getElementById("ob-csv").addEventListener("click", function () { if (gridApi) gridApi.exportDataAsCsv({ fileName: "polymarket_events.csv" }); });
+  ["ob-prev", "ob-next"].forEach(function (id) {
+    var btn = document.getElementById(id);
+    if (!btn || btn.disabled) return;
+    btn.addEventListener("click", function () {
+      var qs = new URLSearchParams(window.location.search);
+      qs.set("offset", btn.getAttribute("data-offset") || "0");
+      emitWidgetParams({ offset: btn.getAttribute("data-offset") || "0" });
+      window.location.search = qs.toString();
+    });
+  });
   document.addEventListener("click", function (event) {
     var a = event.target && event.target.closest ? event.target.closest("a.event[data-event-id]") : null;
     if (!a) return;

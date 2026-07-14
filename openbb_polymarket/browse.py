@@ -31,8 +31,8 @@ def _outcome_html(outcome: dict[str, Any], selected_market_key: str = "") -> str
     market_key = str(outcome.get("market_key") or "")
     selected = " selected" if market_key and market_key == selected_market_key else ""
     avatar = (
-        f"<span class=\"oc-img\" style=\"background-image:url('{escape(image)}')\"></span>"
-        if image else ""
+        f"<span class=\"oc-img has-img\" style=\"background-image:url('{escape(image)}')\"></span>"
+        if image else '<span class="oc-img"></span>'
     )
     return f"""
     <div class="outcome{selected}" data-market-key="{escape(market_key)}">
@@ -54,7 +54,7 @@ def _event_html(
 ) -> str:
     image = str(event.get("image") or "")
     thumb = (
-        f"<span class=\"ev-img\" style=\"background-image:url('{escape(image)}')\"></span>"
+        f"<span class=\"ev-img has-img\" style=\"background-image:url('{escape(image)}')\"></span>"
         if image else '<span class="ev-img"></span>'
     )
     outcomes = "".join(_outcome_html(o, selected_market_key) for o in event.get("outcomes", []))
@@ -71,14 +71,11 @@ def _event_html(
     sub = " · ".join(part for part in (escape(tags), close_html) if part)
     event_id = str(event.get("event_id") or "")
     market_key = str((event.get("outcomes") or [{}])[0].get("market_key") or "")
-    # Link back into the same browse endpoint with the event selected: it renders
-    # the detail view, so the native link navigates there and a grouped reload
-    # (from the emitted event_id) lands on the same URL.
-    href = f"{base_url}/browse_markets?event_id={quote(event_id)}"
+    href = f"{base_url}/event_details?event_id={quote(event_id)}&theme={quote(theme)}"
     if market_key:
         href += f"&market_key={quote(market_key, safe='')}"
     if back_qs:
-        href += f"&{back_qs}"
+        href += f"&back={quote(back_qs, safe='')}"
     selected = " selected" if event_id and event_id == selected_event_id else ""
     return f"""
     <a class="event{selected}" href="{href}" data-event-id="{escape(event_id)}" data-market-key="{escape(market_key)}">
@@ -108,6 +105,8 @@ def render_browse(
     theme: str,
     base_url: str = "",
     back_qs: str = "",
+    limit: int = 40,
+    offset: int = 0,
     selected_event_id: str = "",
     selected_market_key: str = "",
     emit_on_load: bool = False,
@@ -123,7 +122,23 @@ def render_browse(
     else:
         hint = f' for "{escape(search)}"' if search else ""
         body = f'<div class="empty">No markets found{hint}.</div>'
-    caption = f'{len(events)} of {total} active events' + (f' · "{escape(search)}"' if search else "")
+
+    offset = max(0, offset)
+    first = offset + 1 if events else 0
+    last = offset + len(events)
+    caption = (
+        f"{first}–{last} of {total} open events" if events else f"0 of {total} open events"
+    ) + (f' · "{escape(search)}"' if search else "")
+    prev_off = max(0, offset - limit)
+    next_off = offset + limit
+    prev_dis = " disabled" if offset <= 0 else ""
+    next_dis = " disabled" if next_off >= total else ""
+    pager = (
+        f'<div class="pager">'
+        f'<button id="ob-prev" type="button" data-offset="{prev_off}"{prev_dis}>‹ Prev</button>'
+        f'<button id="ob-next" type="button" data-offset="{next_off}"{next_dis}>Next ›</button>'
+        f"</div>"
+    )
 
     def _emb(value: Any) -> str:
         return json.dumps(value).replace("</", "<\\/")
@@ -135,6 +150,9 @@ def render_browse(
         "base": base_url,
         "theme": theme,
         "back": back_qs,
+        "limit": limit,
+        "offset": offset,
+        "total": total,
         "selectedEventId": selected_event_id,
         "selectedMarketKey": selected_market_key,
         "emitOnLoad": emit_on_load,
@@ -154,6 +172,7 @@ def render_browse(
   <main class="wrap">
     <div class="toolbar">
       <div class="caption">{caption}</div>
+      {pager}
       <div class="views">
         <button id="ob-view-cards" class="active" type="button">Cards</button>
         <button id="ob-view-table" type="button">Table</button>

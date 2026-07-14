@@ -5,15 +5,6 @@
     catch (e) { return fallback; }
   }
   var EVCFG = readJson("ev-cfg", {});
-  var backLink = document.querySelector("a.back");
-  if (backLink) {
-    backLink.addEventListener("click", function () {
-      var t = window.top || window.parent;
-      if (t !== window) {
-        t.postMessage({ type: "openbb:widget-params:update", params: { event_id: "", market_key: "" } }, "*");
-      }
-    });
-  }
   document.querySelectorAll(".ts-d").forEach(function (el) {
     var ms = Number(el.getAttribute("data-ts")); if (!ms) return;
     el.textContent = (el.getAttribute("data-prefix") || "")

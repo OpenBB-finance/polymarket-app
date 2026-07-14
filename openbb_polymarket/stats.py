@@ -221,9 +221,8 @@ class EventStatsCache:
         return [e for e in rows if self._is_open(e, now) and self._within_window(e, cutoff)]
 
     async def tags(self) -> list[dict[str, Any]]:
-        await self.ensure_fresh()
         stats: dict[str, dict[str, float]] = {}
-        for event in self._events:
+        for event in await self.events():
             for slug in event.get("tag_slugs") or []:
                 bucket = stats.setdefault(
                     slug, {"event_count": 0.0, "volume_24h": 0.0, "volume_total": 0.0}
@@ -314,7 +313,8 @@ class EventStatsCache:
         reverse: bool = False,
         outcomes_per_event: int = 4,
         limit: int = 40,
-    ) -> list[dict[str, Any]]:
+        offset: int = 0,
+    ) -> tuple[list[dict[str, Any]], int]:
         events = await self.events(tag=tag, close_within_days=close_within_days)
         terms = _terms(search)
         if terms:
@@ -323,15 +323,17 @@ class EventStatsCache:
         field, descending = SORT_FIELDS.get(sort, SORT_FIELDS["trending"])
         if reverse:
             descending = not descending
-        events = self._sorted(events, field, descending)[:limit]
+        events = self._sorted(events, field, descending)
+        total = len(events)
+        page = events[max(0, offset): max(0, offset) + limit]
 
         cards = []
-        for event in events:
+        for event in page:
             outcomes = sorted(
                 event["outcomes"], key=lambda o: to_float(o["volume_total"]), reverse=True
             )[:outcomes_per_event]
             cards.append({**event, "outcomes": outcomes})
-        return cards
+        return cards, total
 
     @staticmethod
     def _sorted(events: list[dict[str, Any]], field: str, descending: bool) -> list[dict[str, Any]]:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from typing import Any
 from urllib.parse import quote, urlencode
 
@@ -67,6 +68,7 @@ async def _browse_param_defs(
     close_within: str = "",
     reverse: bool = False,
     limit: int = 40,
+    offset: int = 0,
 ) -> list[dict[str, Any]]:
     tag_options = [{"label": "All tags", "value": "All"}]
     tag_options += [{"label": f"{t['label']} ({t['event_count']})", "value": t["slug"]} for t in await stats.tags()]
@@ -113,12 +115,20 @@ async def _browse_param_defs(
         {"paramName": "reverse", "label": "Reverse sort", "type": "boolean", "value": "true" if reverse else "false"},
         {
             "paramName": "limit",
-            "label": "Max events",
+            "label": "Per page",
             "type": "number",
             "value": str(limit),
             "min": 1,
             "max": 150,
             "step": 10,
+        },
+        {
+            "paramName": "offset",
+            "label": "Offset",
+            "type": "number",
+            "value": str(max(0, offset)),
+            "min": 0,
+            "step": limit,
         },
     ]
 
@@ -167,24 +177,32 @@ async def _browse_cards(
     sort: str,
     reverse: bool,
     limit: int,
+    offset: int = 0,
 ) -> tuple[list[dict[str, Any]], int]:
     if search.strip():
         found = await service.search_events(search, tag=norm_tag(tag) or None)
         cards = [flatten_event(raw) for raw in found["events"]]
-        cards = [c for c in cards if c]
+        now = time.time()
+        cutoff = None if _days(close_within) is None else now + _days(close_within) * 86400
+        cards = [
+            c for c in cards
+            if c
+            and (c.get("end_ts") is None or c["end_ts"] > now)
+            and (cutoff is None or (c.get("end_ts") is not None and c["end_ts"] <= cutoff))
+        ]
         field, descending = SORT_FIELDS.get(sort, SORT_FIELDS["trending"])
         if reverse:
             descending = not descending
-        cards = EventStatsCache._sorted(cards, field, descending)[:limit]
+        cards = EventStatsCache._sorted(cards, field, descending)
+        total = len(cards)
+        cards = cards[max(0, offset): max(0, offset) + limit]
         for card in cards:
             card["outcomes"] = sorted(card["outcomes"], key=lambda o: o["volume_total"], reverse=True)[:4]
-        total = int((found.get("pagination") or {}).get("totalResults") or len(cards))
         return cards, total
-    cards = await stats.browse_events(
-        tag=tag, close_within_days=_days(close_within), sort=sort, reverse=reverse, limit=limit
+    return await stats.browse_events(
+        tag=tag, close_within_days=_days(close_within), sort=sort,
+        reverse=reverse, limit=limit, offset=offset,
     )
-    total = len(await stats.events(tag=tag))
-    return cards, total
 
 
 @router.get("/browse_markets")
@@ -198,12 +216,14 @@ async def browse_markets(
     market_key: str = Query(""),
     reverse: bool = Query(False),
     limit: int = Query(40, ge=1, le=150),
+    offset: int = Query(0, ge=0),
     theme: str = Query("dark"),
     raw: bool = Query(False),
     stats: EventStatsCache = Depends(get_stats),
     service: MarketDataService = Depends(get_service),
 ) -> Any:
     sort = sort if sort in _VALID_SORTS else "trending"
+    limit = clamp_limit(limit, maximum=150)
     filters = {
         "tag": tag,
         "search": search,
@@ -214,19 +234,6 @@ async def browse_markets(
     }
     back_qs = urlencode({k: v for k, v in filters.items() if v and v != ALL})
 
-    # A selected event renders the detail view in the same iframe, so a grouped
-    # reload (from a card click or the Event dropdown) lands on the detail — it
-    # never bounces back to the list.
-    if not raw and (event_id or "").strip():
-        return await _render_event_detail(
-            request,
-            service,
-            event_id=event_id,
-            market_key=market_key,
-            theme=theme,
-            back_qs=back_qs,
-        )
-
     cards, total = await _browse_cards(
         stats,
         service,
@@ -235,7 +242,8 @@ async def browse_markets(
         close_within=close_within,
         sort=sort,
         reverse=reverse,
-        limit=clamp_limit(limit, maximum=150),
+        limit=limit,
+        offset=offset,
     )
     rows = [_event_row(card) for card in cards]
     if raw:
@@ -252,40 +260,14 @@ async def browse_markets(
             close_within=close_within,
             reverse=reverse,
             limit=limit,
+            offset=offset,
         ),
         total=total,
         search=search,
         theme=theme,
         back_qs=back_qs,
-    )
-    return HTMLResponse(content=html)
-
-
-async def _render_event_detail(
-    request: Request,
-    service: MarketDataService,
-    *,
-    event_id: str,
-    market_key: str,
-    theme: str,
-    back_qs: str,
-) -> HTMLResponse:
-    from openbb_polymarket.formatting import parse_market_key
-
-    identifier = (event_id or "").strip() or parse_market_key(market_key)["event_id"]
-    resolved = await service.resolve_event(event_id=identifier or None)
-    figure = await _event_figure(service, resolved, theme)
-    back_url = f"/browse_markets?{back_qs}" if back_qs else f"/browse_markets?theme={quote(theme)}"
-    poll_url = f"/event_chart?event_id={quote(resolved['event_id'])}&theme={quote(theme)}"
-    html = render_event_page(
-        event=resolved["event"],
-        markets=resolved["markets"],
-        event_id=resolved["event_id"],
-        theme=theme,
-        back_url=back_url,
-        history_figure=figure,
-        poll_url=poll_url,
-        market_key=market_key,
+        limit=limit,
+        offset=offset,
     )
     return HTMLResponse(content=html)
 
