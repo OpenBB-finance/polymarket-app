@@ -1,9 +1,9 @@
 [
   {
     "name": "Polymarket Market Explorer",
-    "img": "static/thumbnail.svg",
-    "img_dark": "static/thumbnail.svg",
-    "img_light": "static/thumbnail.svg",
+    "img": "https://polymarket.external.openbb.app/static/thumbnail.svg",
+    "img_dark": "https://polymarket.external.openbb.app/static/thumbnail.svg",
+    "img_light": "https://polymarket.external.openbb.app/static/thumbnail.svg",
     "description": "Search and browse active Polymarket events, then drill from tag to event to market for probability, orderbook, trades, holders, and price history.",
     "allowCustomization": true,
     "tabs": {
@@ -229,7 +229,7 @@
       {
         "name": "Polymarket Markets",
         "description": "Polymarket market-data tools: browse events by tag, list active tags, set the selected market, and pull quotes, order books, recent trades, and top holders.",
-        "url": "mcp/"
+        "url": "https://polymarket.external.openbb.app/mcp/"
       }
     ]
   }
