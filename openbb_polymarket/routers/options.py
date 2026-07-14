@@ -38,13 +38,9 @@ async def _event_options(stats: EventStatsCache, tag: str) -> list[Option]:
         event_id = event.get("event_id", "")
         if not event_id:
             continue
-        title = _truncate(event.get("title") or event_id, 70)
-        leading = event.get("leading_outcome")
-        label = (
-            f"{title} · {leading} {event.get('leading_pct', 0):.0f}%"
-            if leading else title
+        options.append(
+            {"label": _truncate(event.get("title") or event_id, 100), "value": event_id}
         )
-        options.append({"label": _truncate(label, 100), "value": event_id})
     return options
 
 

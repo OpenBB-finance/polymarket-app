@@ -149,8 +149,8 @@
     }
   },
   "browse_markets": {
-    "name": "Browse Markets",
-    "description": "Search and browse active Polymarket events as cards with leading outcomes and live probabilities. Search routes to Polymarket's full-text search.",
+    "name": "Browse Events",
+    "description": "Search and browse active Polymarket events.",
     "category": "Polymarket",
     "type": "iframe",
     "endpoint": "browse_markets",

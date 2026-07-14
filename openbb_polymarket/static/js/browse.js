@@ -4,6 +4,10 @@
   var ROWS = JSON.parse(document.getElementById("ob-rowdata").textContent || "[]");
   var CFG = JSON.parse(document.getElementById("ob-cfg").textContent || "{}");
   var PARAM_KEYS = PARAM_DEFS.map(function (p) { return p.paramName; });
+  var CURRENT = {};
+  PARAM_DEFS.forEach(function (p) {
+    CURRENT[p.paramName] = String(p.value == null ? "" : p.value);
+  });
   var GROUP_FILTER_VALUES = {};
   PARAM_DEFS.forEach(function (p) {
     if (p.paramName !== "tag") return;
@@ -69,8 +73,8 @@
       });
     }
     var qs = new URLSearchParams(window.location.search), changed = false;
-    var tag = String(incoming.tag != null ? incoming.tag : (qs.get("tag") || ""));
-    var search = String(incoming.search != null ? incoming.search : (qs.get("search") || ""));
+    var tag = String(incoming.tag != null ? incoming.tag : (CURRENT.tag || ""));
+    var search = String(incoming.search != null ? incoming.search : (CURRENT.search || ""));
     var grouped = !!tag && tag !== "All";
     if (grouped && GROUP_FILTER_VALUES[search.toLowerCase()]) {
       incoming.search = "";
@@ -80,7 +84,7 @@
       var v = incoming[k];
       if (!k || v == null || PARAM_KEYS.indexOf(k) < 0) return;
       var s = String(v);
-      if (qs.get(k) !== s) { qs.set(k, s); changed = true; }
+      if (CURRENT[k] !== s) { qs.set(k, s); changed = true; }
     });
     if (changed) window.location.search = qs.toString();
   }
