@@ -197,7 +197,7 @@ async def _browse_cards(
         total = len(cards)
         cards = cards[max(0, offset): max(0, offset) + limit]
         for card in cards:
-            card["outcomes"] = sorted(card["outcomes"], key=lambda o: o["volume_total"], reverse=True)[:4]
+            card["outcomes"] = sorted(card["outcomes"], key=lambda o: o["probability_pct"], reverse=True)[:4]
         return cards, total
     return await stats.browse_events(
         tag=tag, close_within_days=_days(close_within), sort=sort,
@@ -214,6 +214,7 @@ async def browse_markets(
     close_within: str = Query(""),
     event_id: str = Query(""),
     market_key: str = Query(""),
+    view: str = Query(""),
     reverse: bool = Query(False),
     limit: int = Query(40, ge=1, le=150),
     offset: int = Query(0, ge=0),
@@ -233,6 +234,12 @@ async def browse_markets(
         "theme": theme,
     }
     back_qs = urlencode({k: v for k, v in filters.items() if v and v != ALL})
+
+    if not raw and view.strip():
+        return await _event_detail_response(
+            request, service, event_id=view.strip(), market_key=market_key,
+            theme=theme, back=back_qs, filters=filters,
+        )
 
     cards, total = await _browse_cards(
         stats,
@@ -281,14 +288,15 @@ async def _event_figure(service: MarketDataService, resolved: dict[str, Any], th
     return charts.outcome_history(lines, theme) if lines else None
 
 
-@router.get("/event_details")
-async def event_details(
+async def _event_detail_response(
     request: Request,
-    event_id: str = Query(""),
-    market_key: str = Query(""),
-    theme: str = Query("dark"),
-    back: str = Query(""),
-    service: MarketDataService = Depends(get_service),
+    service: MarketDataService,
+    *,
+    event_id: str,
+    market_key: str,
+    theme: str,
+    back: str,
+    filters: dict[str, Any] | None = None,
 ) -> HTMLResponse:
     from openbb_polymarket.formatting import parse_market_key
 
@@ -306,8 +314,23 @@ async def event_details(
         history_figure=figure,
         poll_url=poll_url,
         market_key=market_key,
+        filters=filters or {},
     )
     return HTMLResponse(content=html)
+
+
+@router.get("/event_details")
+async def event_details(
+    request: Request,
+    event_id: str = Query(""),
+    market_key: str = Query(""),
+    theme: str = Query("dark"),
+    back: str = Query(""),
+    service: MarketDataService = Depends(get_service),
+) -> HTMLResponse:
+    return await _event_detail_response(
+        request, service, event_id=event_id, market_key=market_key, theme=theme, back=back,
+    )
 
 
 @router.get("/event_chart")

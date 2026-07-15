@@ -81,6 +81,7 @@ def render_event_page(
     history_figure: dict[str, Any] | None = None,
     poll_url: str = "",
     market_key: str = "",
+    filters: dict[str, Any] | None = None,
 ) -> str:
     is_light = theme == "light"
     assets = base_url.rstrip("/")
@@ -91,15 +92,27 @@ def render_event_page(
     )
     figure_json = json.dumps(history_figure or {}).replace("</", "<\\/")
     cfg_json = json.dumps(
-        {"poll": poll_url, "event_id": event_id, "market_key": market_key}
+        {
+            "poll": poll_url,
+            "event_id": event_id,
+            "market_key": market_key,
+            "theme": theme,
+            "filters": filters or {},
+        }
     ).replace("</", "<\\/")
-    outcomes = sorted(
+    all_outcomes = sorted(
         (_outcome_row(m) for m in markets),
         key=lambda o: to_float(o["volume_total"]),
         reverse=True,
     )
-    total_volume = sum(o["volume_total"] for o in outcomes)
-    total_liquidity = sum(o["liquidity"] for o in outcomes)
+    total_volume = sum(o["volume_total"] for o in all_outcomes)
+    total_liquidity = sum(o["liquidity"] for o in all_outcomes)
+
+    def _active(outcome: dict[str, Any]) -> bool:
+        return to_float(outcome["volume_total"]) > 0 or to_float(outcome["liquidity"]) > 0
+
+    outcomes = [o for o in all_outcomes if _active(o)] or all_outcomes
+    hidden = len(all_outcomes) - len(outcomes)
     rep = markets[0] if markets else {}
     tags = ", ".join(
         str(t.get("slug") or t.get("label") or "")
@@ -110,7 +123,7 @@ def render_event_page(
     meta = " · ".join(
         part for part in (
             escape(tags),
-            f"{len(outcomes)} markets",
+            f"{len(outcomes)} of {len(all_outcomes)} markets" if hidden else f"{len(all_outcomes)} markets",
             f"${compact_number(total_volume)} volume",
             f"${compact_number(total_liquidity)} liquidity",
             (_time_el(event.get("endDate"), "ends ") if event.get("endDate") else ""),
@@ -118,6 +131,11 @@ def render_event_page(
     )
 
     rows = "".join(_outcome_html(o) for o in outcomes) or '<tr><td colspan="7" class="muted">No markets.</td></tr>'
+    if hidden:
+        rows += (
+            f'<tr><td colspan="7" class="muted" style="text-align:center;padding-top:12px">'
+            f"{hidden} inactive market{'s' if hidden != 1 else ''} hidden (no volume or liquidity)</td></tr>"
+        )
 
     resolution = ""
     if event.get("description"):

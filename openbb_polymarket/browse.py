@@ -71,11 +71,11 @@ def _event_html(
     sub = " · ".join(part for part in (escape(tags), close_html) if part)
     event_id = str(event.get("event_id") or "")
     market_key = str((event.get("outcomes") or [{}])[0].get("market_key") or "")
-    href = f"{base_url}/event_details?event_id={quote(event_id)}&theme={quote(theme)}"
+    href = f"{base_url}/browse_markets?view={quote(event_id)}"
     if market_key:
         href += f"&market_key={quote(market_key, safe='')}"
     if back_qs:
-        href += f"&back={quote(back_qs, safe='')}"
+        href += f"&{back_qs}"
     selected = " selected" if event_id and event_id == selected_event_id else ""
     return f"""
     <a class="event{selected}" href="{href}" data-event-id="{escape(event_id)}" data-market-key="{escape(market_key)}">

@@ -11,6 +11,7 @@ from openbb_polymarket.formatting import (
     compact_number,
     parse_market_key,
     timestamp_to_iso,
+    to_float,
 )
 from openbb_polymarket.service import MarketDataService, TOP_HISTORY_OUTCOME_COUNT
 from openbb_polymarket.stats import EventStatsCache, _outcome
@@ -96,6 +97,8 @@ async def event_outcomes(
         return []
     resolved = await service.resolve_event(event_id=event_id)
     rows = [market_row(m, resolved["event_id"]) for m in resolved["markets"]]
+    active = [r for r in rows if to_float(r["volume_total"]) > 0 or to_float(r["liquidity"]) > 0]
+    rows = active or rows
     rows.sort(key=lambda row: (row["volume_24h"], row["volume_total"], row["probability_pct"]), reverse=True)
     return [{field: row.get(field) for field in _OUTCOME_FIELDS} for row in rows]
 

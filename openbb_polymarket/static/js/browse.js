@@ -117,14 +117,17 @@
   function intFmt(p) { return p.value == null ? "" : Number(p.value).toLocaleString(); }
   function pctFmt(p) { return p.value == null ? "" : Number(p.value).toFixed(0) + "%"; }
   function eventUrl(id, mk) {
-    var u = CFG.base + "/event_details?event_id=" + encodeURIComponent(id) + "&theme=" + encodeURIComponent(CFG.theme || "dark");
+    var u = CFG.base + "/browse_markets?view=" + encodeURIComponent(id);
     if (mk) u += "&market_key=" + encodeURIComponent(mk);
-    if (CFG.back) u += "&back=" + encodeURIComponent(CFG.back);
+    if (CFG.back) u += "&" + CFG.back;
     return u;
+  }
+  function selectEvent(id, mk) {
+    emitWidgetParams({ event_id: id, market_key: mk || "", view: id });
   }
   function selectAndOpen(id, mk) {
     if (!id) return;
-    emitWidgetParams({ event_id: id, market_key: mk || "" });
+    selectEvent(id, mk);
     window.location.href = eventUrl(id, mk);
   }
   function buildGrid() {
@@ -179,6 +182,6 @@
   document.addEventListener("click", function (event) {
     var a = event.target && event.target.closest ? event.target.closest("a.event[data-event-id]") : null;
     if (!a) return;
-    emitWidgetParams({ event_id: a.getAttribute("data-event-id"), market_key: a.getAttribute("data-market-key") || "" });
+    selectEvent(a.getAttribute("data-event-id"), a.getAttribute("data-market-key") || "");
   });
 })();
