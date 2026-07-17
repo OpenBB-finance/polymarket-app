@@ -99,13 +99,6 @@
             }
           },
           {
-            "field": "event_title",
-            "headerName": "Event",
-            "cellDataType": "text",
-            "chartDataType": "category",
-            "width": 320
-          },
-          {
             "field": "volume_24h",
             "headerName": "24h Volume",
             "cellDataType": "number",
