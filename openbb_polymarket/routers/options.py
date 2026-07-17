@@ -71,6 +71,12 @@ async def _market_options(
     def volume(market: dict[str, Any]) -> float:
         return to_float(market.get("volume24hr"))
 
+    def active(market: dict[str, Any]) -> bool:
+        vol = to_float(market.get("volumeNum") or market.get("volume"))
+        liq = to_float(market.get("liquidityNum") or market.get("liquidity"))
+        return vol > 0 or liq > 0
+
+    markets = [m for m in markets if active(m)] or markets
     probability_mode = include_top or sort == "probability"
     sort_key = probability if probability_mode else volume
     ranked = sorted(markets, key=sort_key, reverse=True)

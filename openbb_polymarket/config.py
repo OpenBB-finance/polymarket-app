@@ -16,6 +16,8 @@ except ImportError:
 DEFAULT_CORS_ORIGINS = (
     "https://pro.openbb.co",
     "https://pro.openbb.dev",
+    "https://backends.openbb.co",
+    "https://backends.openbb.dev",
     "https://excel.openbb.co",
     "https://excel.openbb.dev",
     "tauri://localhost",

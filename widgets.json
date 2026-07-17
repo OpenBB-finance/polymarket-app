@@ -216,10 +216,7 @@
         "value": "",
         "show": false
       }
-    ],
-    "storage": {
-      "mcpUrl": "mcp/"
-    }
+    ]
   },
   "event_metrics": {
     "name": "Selected Event Metrics",
@@ -727,10 +724,7 @@
         },
         "row": 1
       }
-    ],
-    "storage": {
-      "mcpUrl": "mcp/"
-    }
+    ]
   },
   "orderbook_ladder": {
     "name": "Orderbook Ladder",
