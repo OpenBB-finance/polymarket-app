@@ -197,7 +197,9 @@ async def _browse_cards(
         total = len(cards)
         cards = cards[max(0, offset): max(0, offset) + limit]
         for card in cards:
-            card["outcomes"] = sorted(card["outcomes"], key=lambda o: o["probability_pct"], reverse=True)[:4]
+            live = [o for o in card["outcomes"] if o["volume_total"] > 0 or o["liquidity"] > 0] or card["outcomes"]
+            card["market_count"] = len(live)
+            card["outcomes"] = sorted(live, key=lambda o: o["probability_pct"], reverse=True)[:4]
         return cards, total
     return await stats.browse_events(
         tag=tag, close_within_days=_days(close_within), sort=sort,

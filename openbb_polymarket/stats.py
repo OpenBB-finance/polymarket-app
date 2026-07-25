@@ -329,10 +329,12 @@ class EventStatsCache:
 
         cards = []
         for event in page:
-            outcomes = sorted(
-                event["outcomes"], key=lambda o: to_float(o["probability_pct"]), reverse=True
-            )[:outcomes_per_event]
-            cards.append({**event, "outcomes": outcomes})
+            live = [
+                o for o in event["outcomes"]
+                if to_float(o["volume_total"]) > 0 or to_float(o["liquidity"]) > 0
+            ] or event["outcomes"]
+            outcomes = sorted(live, key=lambda o: to_float(o["probability_pct"]), reverse=True)[:outcomes_per_event]
+            cards.append({**event, "outcomes": outcomes, "market_count": len(live)})
         return cards, total
 
     @staticmethod
